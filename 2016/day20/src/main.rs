@@ -10,5 +10,7 @@ fn main() {
     let mut file = File::open(input_path).expect(&format!("Could not open {}", input_path));
     file.read_to_end(&mut input).expect("Could not read from file");
 
-    let result = puzzle(&input).expect("Could not run puzzle code");
+    let n_addresses = 4294967295;
+    let result = puzzle(&input, n_addresses).expect("Could not run puzzle code");
+    println!("Minimum ip address: {}", result);
 }
