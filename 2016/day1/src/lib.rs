@@ -63,6 +63,18 @@ fn next_facing(facing: Facing, direction: Direction) -> Facing {
     }
 }
 
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+pub struct Position {
+    x: i32,
+    y: i32,
+}
+
+impl Position {
+    fn distance(&self) -> i32 {
+        self.x.abs() + self.y.abs()
+    }
+}
+
 pub fn puzzle(input: &[u8]) -> Result<i32> {
     use Facing::*;
 
@@ -70,25 +82,31 @@ pub fn puzzle(input: &[u8]) -> Result<i32> {
     let words = instructions.split_whitespace();
     let instructions = words.map(Instruction::from_str);
 
-    let mut pos_x = 0i32;
-    let mut pos_y = 0i32;
+    let mut pos = Position::default();
     let mut facing = North;
+    let mut history = Vec::new();
 
-    for instruction in instructions {
+    for (i, instruction) in instructions.enumerate() {
         if let Ok(instruction) = instruction {
             facing = next_facing(facing, instruction.direction);
             let distance = instruction.distance;
 
             match facing {
-                North => pos_y += distance as i32,
-                South => pos_y -= distance as i32,
-                East => pos_x += distance as i32,
-                West => pos_x -= distance as i32,
+                North => pos.y += distance as i32,
+                South => pos.y -= distance as i32,
+                East => pos.x += distance as i32,
+                West => pos.x -= distance as i32,
             }
+
+            if history.contains(&pos) {
+                println!("{} => Position {:?} already found at distance {}", i, pos, pos.distance());
+            }
+
+            history.push(pos);
         }
     }
 
-    Ok(pos_x.abs() + pos_y.abs())
+    Ok(pos.distance())
 }
 
 #[cfg(test)]
