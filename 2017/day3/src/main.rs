@@ -1,3 +1,7 @@
+fn compute_width(_x: i32) -> i32 {
+    0
+}
+
 pub fn compute_distance(_loc: i32) -> i32 {
     0
 }
@@ -13,7 +17,22 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::compute_distance;
+    use super::*;
+
+    #[test]
+    fn width_1() {
+        assert_eq!(compute_width(1), 0);
+    }
+
+    #[test]
+    fn width_2() {
+        assert_eq!(compute_width(2), 1);
+    }
+
+    #[test]
+    fn width_15() {
+        assert_eq!(compute_width(15), 0);
+    }
 
     #[test]
     fn test_1() {
