@@ -1,3 +1,7 @@
+#![feature(test)]
+
+extern crate test;
+
 use std::fs::File;
 use std::io::Read;
 
@@ -72,6 +76,7 @@ fn final_instruction_part_2(text: &str) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn test_parse_instructions() {
@@ -83,5 +88,23 @@ mod tests {
     fn test_example_result() {
         let text = "0\n3\n0\n1\n3\n";
         assert_eq!(final_instruction_part_1(text), 4);
+    }
+
+    #[bench]
+    fn bench_part_one(b: &mut Bencher) {
+        let mut s = String::new();
+        let mut f = File::open("input.txt").expect("opening input file");
+        f.read_to_string(&mut s).expect("reading file contents");
+
+        b.iter(|| final_instruction_part_1(&s));
+    }
+
+    #[bench]
+    fn bench_part_two(b: &mut Bencher) {
+        let mut s = String::new();
+        let mut f = File::open("input.txt").expect("opening input file");
+        f.read_to_string(&mut s).expect("reading file contents");
+
+        b.iter(|| final_instruction_part_2(&s));
     }
 }
