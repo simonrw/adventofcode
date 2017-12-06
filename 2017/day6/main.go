@@ -49,14 +49,26 @@ func loadInitialMemory(filename string) ([16]int, error) {
 func countReallocations(memory []int) (int, error) {
 	previousStates := [][]int{}
 
+	stateSeen := false
+	startingState := make([]int, len(memory))
+	counter := 0
 	for {
 		c := make([]int, len(memory))
 		copy(c, memory)
 		previousStates = append(previousStates, c)
 
 		memory = newState(memory)
-		if checkSeenBefore(previousStates, memory) {
-			return len(previousStates), nil
+		if !stateSeen {
+			if checkSeenBefore(previousStates, memory) {
+				stateSeen = true
+				copy(startingState, memory)
+			}
+		} else {
+			if testEqual(memory, startingState) {
+				return counter + 1, nil
+			}
+
+			counter++
 		}
 	}
 }
