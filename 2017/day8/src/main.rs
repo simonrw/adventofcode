@@ -128,6 +128,7 @@ pub fn run() -> Result<()> {
         .collect();
     let mut registers = HashMap::new();
 
+    let mut running_max = -1000000;
     for instruction in instructions {
         let new_value = {
             let compare_register = registers.entry(instruction.condition.register).or_insert(0);
@@ -174,6 +175,7 @@ pub fn run() -> Result<()> {
             }
         };
 
+        {
         let src_register = registers.entry(instruction.register).or_insert(0);
 
         use InstructionType::*;
@@ -181,18 +183,25 @@ pub fn run() -> Result<()> {
             Increment => *src_register += new_value,
             Decrement => *src_register -= new_value,
         }
+        }
+
+        let current_max = compute_max_value(&mut registers);
+        if current_max > running_max {
+            running_max = current_max;
+        }
     }
 
-    let max_value = compute_max_value(registers);
+    let max_value = compute_max_value(&registers);
     println!("{}", max_value);
+    println!("{}", running_max);
     Ok(())
 }
 
-pub fn compute_max_value(registers: HashMap<String, i32>) -> i32 {
+pub fn compute_max_value(registers: &HashMap<String, i32>) -> i32 {
     let mut maxval = -1000000000;
     for (_key, val) in registers.into_iter() {
-        if val > maxval {
-            maxval = val;
+        if *val > maxval {
+            maxval = *val;
         }
 
     }
