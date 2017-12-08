@@ -1,0 +1,7 @@
+[package]
+authors = ["Simon Walker <s.r.walker101@googlemail.com>"]
+name = "day8"
+version = "0.1.0"
+
+[dependencies]
+combine = "2.5.2"
