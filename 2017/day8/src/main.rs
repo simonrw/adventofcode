@@ -1,6 +1,7 @@
 use std::str::FromStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::collections::HashMap;
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
@@ -88,6 +89,29 @@ impl FromStr for InstructionType {
     }
 }
 
+#[derive(Default, Debug)]
+pub struct Register {
+    name: String,
+    value: i32,
+}
+
+#[derive(Debug)]
+pub struct Registers {
+    registers: HashMap<String, Register>,
+}
+
+impl Registers {
+    pub fn new(instructions: &[Instruction]) -> Result<Self> {
+        let mut registers = HashMap::new();
+        for instruction in instructions {
+            if !registers.contains_key(&instruction.register) {
+                registers.insert(instruction.register.clone(), Register::default());
+            }
+        }
+        Ok(Registers { registers: registers })
+    }
+}
+
 fn main() {
     if let Err(e) = run() {
         eprintln!("Error: {:?}", e);
@@ -98,11 +122,82 @@ fn main() {
 pub fn run() -> Result<()> {
     let f = File::open("input.txt")?;
     let reader = BufReader::new(f);
-    for line in reader.lines() {
-        let line = line.unwrap();
-        let instruction = Instruction::from_str(&line)?;
+    let instructions: Vec<_> = reader
+        .lines()
+        .map(|line| Instruction::from_str(&line.unwrap()).unwrap())
+        .collect();
+    let mut registers = HashMap::new();
+
+    for instruction in instructions {
+        let new_value = {
+            let compare_register = registers.entry(instruction.condition.register).or_insert(0);
+            let comparison_value = instruction.condition.value;
+
+            use Operation::*;
+            match instruction.condition.operation {
+                GreaterThan => {
+                    if *compare_register > comparison_value {
+                        instruction.value
+                    } else {
+                        0
+                    }
+                }
+
+                GreaterEqual => {
+                    if *compare_register >= comparison_value {
+                        instruction.value
+                    } else {
+                        0
+                    }
+                }
+
+                LessThan => if *compare_register < comparison_value {
+                    instruction.value
+                } else {
+                    0
+                }
+                LessEqual => if *compare_register <= comparison_value {
+                    instruction.value
+                } else {
+                    0
+                }
+                Equal => if *compare_register == comparison_value {
+                    instruction.value
+                } else {
+                    0
+                },
+                NotEqual => if *compare_register != comparison_value {
+                    instruction.value
+                } else {
+                    0
+                },
+            }
+        };
+
+        let src_register = registers.entry(instruction.register).or_insert(0);
+
+        use InstructionType::*;
+        match instruction.instruction {
+            Increment => *src_register += new_value,
+            Decrement => *src_register -= new_value,
+        }
     }
+
+    let max_value = compute_max_value(registers);
+    println!("{}", max_value);
     Ok(())
+}
+
+pub fn compute_max_value(registers: HashMap<String, i32>) -> i32 {
+    let mut maxval = -1000000000;
+    for (_key, val) in registers.into_iter() {
+        if val > maxval {
+            maxval = val;
+        }
+
+    }
+
+    maxval
 }
 
 #[cfg(test)]
