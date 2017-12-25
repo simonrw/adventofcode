@@ -8,6 +8,15 @@ pub enum Value {
     V(i64),
 }
 
+impl Value {
+    pub fn get(&self, state: &State) -> i64 {
+        match self {
+            &Value::R(ref name) => state.registers[name],
+            &Value::V(value) => value,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {
     Snd(Register),
@@ -141,81 +150,31 @@ pub fn evaluate(instructions: &[Instruction]) -> i64 {
         let instruction = &instructions[state.pc as usize];
         match instruction {
             &Set(ref r, ref v) => {
-                match *v {
-                    Value::V(value) => {
-                        *state.registers.entry(*r).or_insert(0) = value;
-                    }
-                    Value::R(name) => {
-                        let value = state.registers[&name];
-                        *state.registers.entry(*r).or_insert(0) = value;
-                    }
-                }
+                *state.registers.entry(*r).or_insert(0) = v.get(&state);
             }
             &Add(ref r, ref v) => {
-                match *v {
-                    Value::V(value) => {
-                        *state.registers.entry(*r).or_insert(0) += value;
-                    }
-                    Value::R(name) => {
-                        let value = state.registers[&name];
-                        *state.registers.entry(*r).or_insert(0) += value;
-                    }
-                }
+                *state.registers.entry(*r).or_insert(0) += v.get(&state);
             }
             &Mul(ref r, ref v) => {
-                match *v {
-                    Value::V(value) => {
-                        *state.registers.entry(*r).or_insert(0) *= value;
-                    }
-                    Value::R(name) => {
-                        let value = state.registers[&name];
-                        *state.registers.entry(*r).or_insert(0) *= value;
-                    }
-                }
+                *state.registers.entry(*r).or_insert(0) *= v.get(&state);
             }
             &Mod(ref r, ref v) => {
-                match *v {
-                    Value::V(value) => {
-                        *state.registers.entry(*r).or_insert(0) %= value;
-                    }
-                    Value::R(name) => {
-                        let value = state.registers[&name];
-                        *state.registers.entry(*r).or_insert(0) %= value;
-                    }
-                }
+                *state.registers.entry(*r).or_insert(0) %= v.get(&state);
             }
             &Snd(ref r) => {
                 state.last_sound = state.registers[&r];
             }
             &Rcv(ref r) => {
-                match r {
-                    &Value::V(value) => {
-                        if value > 0 {
-                            return state.last_sound;
-                        }
-                    }
-                    &Value::R(name) => {
-                        let value = state.registers[&name];
-                        if value > 0 {
-                            return state.last_sound;
-                        }
-                    }
+                if r.get(&state) > 0 {
+                    return state.last_sound;
                 }
             }
             &Jgz(ref r, ref v) => {
                 let value = state.registers[&r];
                 if value > 0 {
-                    match v {
-                        &Value::V(vv) => {
-                            state.pc += vv;
-                            /* Do not increment the program counter */
-                            continue;
-                        }
-                        &Value::R(rr) => {
-                            let newvalue = state.registers[&rr];
-                            state.pc += newvalue;
-                        }
-                    }
+                    state.pc += v.get(&state);
+                    /* Do not increment the program counter */
+                    continue;
                 }
             }
         }
@@ -273,5 +232,20 @@ mod test {
         let instructions = expected_instructions();
         let result = evaluate(&instructions);
         assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn test_get_value() {
+        {
+            let state = State::default();
+            let v = Value::V(10);
+            assert_eq!(v.get(&state), 10);
+        }
+        {
+            let mut state = State::default();
+            *state.registers.entry('a').or_insert(0) = 15;
+            let v = Value::R('a');
+            assert_eq!(v.get(&state), 15);
+        }
     }
 }
