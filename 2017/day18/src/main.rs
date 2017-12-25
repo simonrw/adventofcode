@@ -228,4 +228,12 @@ mod test {
             assert_eq!(v.get(&state), 15);
         }
     }
+
+    #[test]
+    fn test_phase1() {
+        let input = include_str!("../input.txt");
+        let instructions = parse_instructions(input);
+        let value = evaluate(&instructions);
+        assert_eq!(value, 9423);
+    }
 }
