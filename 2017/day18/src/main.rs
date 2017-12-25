@@ -33,104 +33,84 @@ pub fn parse_instructions(text: &str) -> Vec<Instruction> {
     for line in text.lines() {
         let mut words = line.split_whitespace();
         let i = words.next().unwrap();
-        match i {
+        let instruction = match i {
             "set" => {
-                let instruction = {
-                    let r = words.next().unwrap().chars().next().unwrap();
-                    let v = words.next().unwrap();
+                let r = words.next().unwrap().chars().next().unwrap();
+                let v = words.next().unwrap();
 
-                    let parsed = v.parse::<i64>();
-                    if let Ok(value) = parsed {
-                        Instruction::Set(r, Value::V(value))
-                    } else {
-                        let v = v.chars().next().unwrap();
-                        Instruction::Set(r, Value::R(v))
-                    }
-                };
-                result.push(instruction);
+                let parsed = v.parse::<i64>();
+                if let Ok(value) = parsed {
+                    Instruction::Set(r, Value::V(value))
+                } else {
+                    let v = v.chars().next().unwrap();
+                    Instruction::Set(r, Value::R(v))
+                }
             }
             "add" => {
-                let instruction = {
-                    let r = words.next().unwrap().chars().next().unwrap();
-                    let v = words.next().unwrap();
+                let r = words.next().unwrap().chars().next().unwrap();
+                let v = words.next().unwrap();
 
-                    let parsed = v.parse::<i64>();
-                    if let Ok(value) = parsed {
-                        Instruction::Add(r, Value::V(value))
-                    } else {
-                        let v = v.chars().next().unwrap();
-                        Instruction::Add(r, Value::R(v))
-                    }
-                };
-                result.push(instruction);
+                let parsed = v.parse::<i64>();
+                if let Ok(value) = parsed {
+                    Instruction::Add(r, Value::V(value))
+                } else {
+                    let v = v.chars().next().unwrap();
+                    Instruction::Add(r, Value::R(v))
+                }
             }
             "mul" => {
-                let instruction = {
-                    let r = words.next().unwrap().chars().next().unwrap();
-                    let v = words.next().unwrap();
+                let r = words.next().unwrap().chars().next().unwrap();
+                let v = words.next().unwrap();
 
-                    let parsed = v.parse::<i64>();
-                    if let Ok(value) = parsed {
-                        Instruction::Mul(r, Value::V(value))
-                    } else {
-                        let v = v.chars().next().unwrap();
-                        Instruction::Mul(r, Value::R(v))
-                    }
-                };
-                result.push(instruction);
+                let parsed = v.parse::<i64>();
+                if let Ok(value) = parsed {
+                    Instruction::Mul(r, Value::V(value))
+                } else {
+                    let v = v.chars().next().unwrap();
+                    Instruction::Mul(r, Value::R(v))
+                }
             }
             "mod" => {
-                let instruction = {
-                    let r = words.next().unwrap().chars().next().unwrap();
-                    let v = words.next().unwrap();
+                let r = words.next().unwrap().chars().next().unwrap();
+                let v = words.next().unwrap();
 
-                    let parsed = v.parse::<i64>();
-                    if let Ok(value) = parsed {
-                        Instruction::Mod(r, Value::V(value))
-                    } else {
-                        let v = v.chars().next().unwrap();
-                        Instruction::Mod(r, Value::R(v))
-                    }
-                };
-                result.push(instruction);
+                let parsed = v.parse::<i64>();
+                if let Ok(value) = parsed {
+                    Instruction::Mod(r, Value::V(value))
+                } else {
+                    let v = v.chars().next().unwrap();
+                    Instruction::Mod(r, Value::R(v))
+                }
             }
             "jgz" => {
-                let instruction = {
-                    let r = words.next().unwrap().chars().next().unwrap();
-                    let v = words.next().unwrap();
+                let r = words.next().unwrap().chars().next().unwrap();
+                let v = words.next().unwrap();
 
-                    let parsed = v.parse::<i64>();
-                    if let Ok(value) = parsed {
-                        Instruction::Jgz(r, Value::V(value))
-                    } else {
-                        let v = v.chars().next().unwrap();
-                        Instruction::Jgz(r, Value::R(v))
-                    }
-                };
-                result.push(instruction);
+                let parsed = v.parse::<i64>();
+                if let Ok(value) = parsed {
+                    Instruction::Jgz(r, Value::V(value))
+                } else {
+                    let v = v.chars().next().unwrap();
+                    Instruction::Jgz(r, Value::R(v))
+                }
             }
             "snd" => {
-                let instruction = {
-                    let r = words.next().unwrap().chars().next().unwrap();
-                    Instruction::Snd(r)
-                };
-                result.push(instruction);
+                let r = words.next().unwrap().chars().next().unwrap();
+                Instruction::Snd(r)
             }
             "rcv" => {
-                let instruction = {
-                    let r = words.next().unwrap();
-                    let parsed = r.parse::<i64>();
-                    if let Ok(value) = parsed {
-                        Instruction::Rcv(Value::V(value))
-                    } else {
-                        let r = r.chars().next().unwrap();
-                        Instruction::Rcv(Value::R(r))
-                    }
-                };
-                result.push(instruction);
+                let r = words.next().unwrap();
+                let parsed = r.parse::<i64>();
+                if let Ok(value) = parsed {
+                    Instruction::Rcv(Value::V(value))
+                } else {
+                    let r = r.chars().next().unwrap();
+                    Instruction::Rcv(Value::R(r))
+                }
             }
             _ => panic!("Unhandled instruction: {}", i),
-        }
+        };
+        result.push(instruction);
     }
     result
 }
