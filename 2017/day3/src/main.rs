@@ -1,9 +1,12 @@
-fn compute_width(_x: i32) -> i32 {
-    0
+fn higher_square(loc: i32) -> (i32, i32) {
+    let n = (loc as f32).sqrt() as i32 + 1;
+    (n * n, n)
 }
 
-pub fn compute_distance(_loc: i32) -> i32 {
-    0
+pub fn compute_distance(loc: i32) -> i32 {
+    let (ns, n) = higher_square(loc);
+    println!("{} {}", ns, n);
+    100
 }
 
 fn main() {
@@ -20,32 +23,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn width_1() {
-        assert_eq!(compute_width(1), 0);
-    }
-
-    #[test]
-    fn width_2() {
-        assert_eq!(compute_width(2), 1);
-    }
-
-    #[test]
-    fn width_15() {
-        assert_eq!(compute_width(15), 0);
-    }
-
-    #[test]
-    fn test_1() {
+    fn test_first() {
         assert_eq!(compute_distance(1), 0);
     }
 
     #[test]
-    fn test_12() {
+    fn test_second() {
         assert_eq!(compute_distance(12), 3);
-    }
-
-    #[test]
-    fn test_23() {
-        assert_eq!(compute_distance(23), 2);
     }
 }
