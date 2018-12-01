@@ -1,0 +1,5 @@
+github.com/mindriot101/adventofcode v0.0.0-20180104204233-3ad2424bf3dd h1:u4Op/p2aLrE9vtUaE6f+/MenCwiKK/BZfmja1ywjRSY=
+github.com/stamblerre/gocode v0.0.0-20181128172141-22843d89bc5a h1:XVxDNb6jzFAgDYoLAazPpGEe+KBtjc/gLRPcC7taWEw=
+github.com/stamblerre/gocode v0.0.0-20181128172141-22843d89bc5a/go.mod h1:EM2T8YDoTCvGXbEpFHxarbpv7VE26QD1++Cb1Pbh7Gs=
+golang.org/x/tools v0.0.0-20181201035826-d0ca3933b724 h1:eV9myT/I6o1p8salzgZ0f1pz54PEgUf2NkCxEf6t+xs=
+golang.org/x/tools v0.0.0-20181201035826-d0ca3933b724/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
