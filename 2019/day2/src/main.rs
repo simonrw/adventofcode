@@ -45,7 +45,7 @@ fn part1() {
     let mut raw_instructions = read_input_data("input.txt").unwrap();
     raw_instructions.set(MemoryLocation(1), 12);
     raw_instructions.set(MemoryLocation(2), 2);
-    println!("result: {}", analyse_instructions(&raw_instructions));
+    println!("Part 1 result: {}", analyse_instructions(&raw_instructions));
 }
 
 fn analyse_instructions(instructions: &RawInstructions) -> i64 {
@@ -100,12 +100,12 @@ fn find_target_inputs(ins: &RawInstructions, target: i64) -> (i64, i64) {
 fn part2() {
     let original_instructions = read_input_data("input.txt").unwrap();
     let (noun, verb) = find_target_inputs(&original_instructions, 19690720);
-    println!("Result: {}", 100 * noun + verb);
+    println!("Part 2 result: {}", 100 * noun + verb);
 }
 
 fn main() {
     env_logger::init();
-    // part1();
+    part1();
     part2();
 }
 
