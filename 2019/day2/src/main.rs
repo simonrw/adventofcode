@@ -3,83 +3,28 @@ use std::path::Path;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-#[derive(Debug)]
-enum Instruction {
-    Add { lhs: i64, rhs: i64, dest: usize },
-    Multiply { lhs: i64, rhs: i64, dest: usize },
-    Terminal,
-}
-
-impl Instruction {
-    fn from_elems(buf: &[i64]) -> Result<Instruction> {
-        match buf[0] {
-            1 => Ok(Instruction::Add {
-                lhs: buf[1],
-                rhs: buf[2],
-                dest: buf[3] as _,
-            }),
-            2 => Ok(Instruction::Multiply {
-                lhs: buf[1],
-                rhs: buf[2],
-                dest: buf[3] as _,
-            }),
-            _ => Err(format!("invalid instruction: {}", buf[0]).into()),
-        }
-    }
-}
-
 #[derive(Clone)]
 struct RawInstructions(Vec<i64>);
 
+#[derive(Debug)]
+struct MemoryLocation(usize);
+
 impl RawInstructions {
-    fn instructions(&self) -> Vec<Instruction> {
-        let mut accum = Vec::with_capacity(4);
-        let mut out = Vec::new();
-
-        for elem in &self.0 {
-            if accum.len() == 4 {
-                eprintln!("{:?}", accum);
-                out.push(Instruction::from_elems(&accum).unwrap());
-                accum.clear();
-                accum.push(*elem);
-            } else if *elem == 99 {
-                out.push(Instruction::Terminal);
-            } else {
-                accum.push(*elem);
-            }
-        }
-
-        out
-
-        // self.0.chunks(4).map(|elems| {
-        //     if elems.len() != 4 {
-        //         eprintln!("unexpected number of items: {:?}", elems);
-        //         return None;
-        //     }
-
-        //     match &elems[0] {
-        //         &1 => Some(Instruction::Add {
-        //             lhs: elems[1],
-        //             rhs: elems[2],
-        //             dest: elems[3] as _,
-        //         }),
-        //         &2 => Some(Instruction::Multiply {
-        //             lhs: elems[1],
-        //             rhs: elems[2],
-        //             dest: elems[3] as _,
-        //         }),
-        //         &99 => Some(Instruction::Terminal),
-        //         _ => unreachable!(),
-        //     }
-        // })
-    }
-
-    fn set(&mut self, idx: usize, value: i64) {
-        self.0[idx] = value;
+    fn set(&mut self, idx: MemoryLocation, value: i64) {
+        log::debug!("setting memory {:?} to {}", idx, value);
+        self.0[idx.0] = value;
     }
 
     fn result(&self) -> i64 {
         self.0[0]
+    }
+
+    fn chunks<'a>(&'a self, n: usize) -> std::slice::Chunks<'a, i64> {
+        self.0.chunks(n)
+    }
+
+    fn get(&self, idx: MemoryLocation) -> i64 {
+        self.0[idx.0]
     }
 }
 
@@ -98,27 +43,58 @@ where
 
 fn part1() {
     let raw_instructions = read_input_data("input.txt").unwrap();
+    println!("result: {}", analyse_instructions(&raw_instructions));
+}
 
-    let mut memory = raw_instructions.clone();
+fn analyse_instructions(instructions: &RawInstructions) -> i64 {
+    let mut memory = instructions.clone();
 
     // Initial replacements
-    memory.set(1, 12);
-    memory.set(2, 2);
+    memory.set(MemoryLocation(1), 12);
+    memory.set(MemoryLocation(2), 2);
 
-    let parsed = raw_instructions.instructions();
-
-    for instruction in parsed {
-        println!("{:?}", instruction);
+    for chunk in instructions.chunks(4) {
+        log::debug!("--- chunk: {:?}", chunk);
+        match chunk[0] {
+            1 => {
+                log::info!("got add instruction");
+                let lhs = memory.get(MemoryLocation(chunk[1] as _));
+                let rhs = memory.get(MemoryLocation(chunk[2] as _));
+                let dest = chunk[3];
+                memory.set(MemoryLocation(dest as _), lhs + rhs);
+            }
+            2 => {
+                log::info!("got multiply instruction");
+                let lhs = memory.get(MemoryLocation(chunk[1] as _));
+                let rhs = memory.get(MemoryLocation(chunk[2] as _));
+                let dest = chunk[3];
+                memory.set(MemoryLocation(dest as _), lhs * rhs);
+            }
+            99 => {
+                log::info!("reached terminal");
+                break;
+            }
+            e => {
+                log::error!("invalid chunk starting element: {}", e);
+            }
+        }
     }
 
-    println!("Final answer: {}", memory.result());
+    memory.result()
 }
 
 fn main() {
+    env_logger::init();
     part1();
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn example1() {
+        let instructions = RawInstructions(vec![1, 0, 0, 0, 99]);
+        assert_eq!(analyse_instructions(&instructions), 2);
+    }
 }
