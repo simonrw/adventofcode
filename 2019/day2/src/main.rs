@@ -42,16 +42,14 @@ where
 }
 
 fn part1() {
-    let raw_instructions = read_input_data("input.txt").unwrap();
+    let mut raw_instructions = read_input_data("input.txt").unwrap();
+    raw_instructions.set(MemoryLocation(1), 12);
+    raw_instructions.set(MemoryLocation(2), 2);
     println!("result: {}", analyse_instructions(&raw_instructions));
 }
 
 fn analyse_instructions(instructions: &RawInstructions) -> i64 {
     let mut memory = instructions.clone();
-
-    // Initial replacements
-    memory.set(MemoryLocation(1), 12);
-    memory.set(MemoryLocation(2), 2);
 
     for chunk in instructions.chunks(4) {
         log::debug!("--- chunk: {:?}", chunk);
@@ -83,9 +81,32 @@ fn analyse_instructions(instructions: &RawInstructions) -> i64 {
     memory.result()
 }
 
+fn find_target_inputs(ins: &RawInstructions, target: i64) -> (i64, i64) {
+    for noun in 0..=99 {
+        for verb in 0..=99 {
+            let mut new_ins = ins.clone();
+            new_ins.set(MemoryLocation(1), noun);
+            new_ins.set(MemoryLocation(2), verb);
+
+            if analyse_instructions(&new_ins) == target {
+                return (noun, verb);
+            }
+        }
+    }
+
+    unreachable!();
+}
+
+fn part2() {
+    let original_instructions = read_input_data("input.txt").unwrap();
+    let (noun, verb) = find_target_inputs(&original_instructions, 19690720);
+    println!("Result: {}", 100 * noun + verb);
+}
+
 fn main() {
     env_logger::init();
-    part1();
+    // part1();
+    part2();
 }
 
 #[cfg(test)]
