@@ -1,0 +1,4 @@
+#!/usr/bin/env gnuplot
+
+set term x11 persist
+plot 'l1_maze.txt' u 1:2 w l, 'l2_maze.txt' u 1:2 w l
