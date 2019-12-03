@@ -95,6 +95,10 @@ impl Maze {
             writeln!(&mut out, "{} {}", point.x, point.y).unwrap();
         }
     }
+
+    fn signal_delay(&self, point: &Point) -> Option<usize> {
+        self.history.iter().position(|p| p == point)
+    }
 }
 
 #[derive(Debug)]
@@ -169,9 +173,55 @@ fn run_on_string(s: &str) -> i64 {
     closest_point.dist()
 }
 
-fn main() {
+fn part1() {
     let input_text = fs::read_to_string("input.txt").unwrap();
     println!("Closest distance: {}", run_on_string(&input_text));
+}
+
+fn shortest_time(s: &str) -> Option<usize> {
+    let lines = s.lines().collect::<Vec<_>>();
+
+    // Run the first line
+    let mut l1_maze = Maze::default();
+    for instruction in lines[0].split(",") {
+        let instruction = instruction.trim().into();
+        l1_maze.track(instruction);
+    }
+
+    l1_maze.write("l1_maze.txt");
+
+    let mut l2_maze = Maze::default();
+    for instruction in lines[1].split(",") {
+        let instruction = instruction.trim().into();
+        l2_maze.track(instruction);
+    }
+
+    l2_maze.write("l2_maze.txt");
+
+    let intersections = l1_maze.intersections_with(&l2_maze);
+
+    let mut min_dist = 2 << 32;
+    for intersection in &intersections {
+        let total_dist = l1_maze.signal_delay(intersection).unwrap()
+            + l2_maze.signal_delay(intersection).unwrap();
+        if total_dist < min_dist {
+            min_dist = total_dist;
+        }
+    }
+
+    // Add two for the start and end points
+    Some(min_dist + 2)
+}
+
+fn part2() {
+    let input_text = fs::read_to_string("input.txt").unwrap();
+    let time_taken = shortest_time(&input_text).unwrap();
+    println!("Shortest time taken: {}", time_taken);
+}
+
+fn main() {
+    // part1();
+    part2();
 }
 
 #[cfg(test)]
@@ -197,5 +247,24 @@ mod tests {
         let input =
             "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7";
         assert_eq!(run_on_string(input), 135);
+    }
+
+    // Part 2
+
+    #[test]
+    fn test_third_example() {
+        init();
+
+        let input = "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83";
+        assert_eq!(shortest_time(input).unwrap(), 610);
+    }
+
+    #[test]
+    fn test_fourth_example() {
+        init();
+
+        let input =
+            "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7";
+        assert_eq!(shortest_time(input).unwrap(), 410);
     }
 }
