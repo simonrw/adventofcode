@@ -38,6 +38,13 @@ impl Password {
             }
         }
 
+        // Check the numbers are all increasing
+        for i in 0..5 {
+            if d[i] < d[i + 1] {
+                return false;
+            }
+        }
+
         if valid {
             return valid;
         }
