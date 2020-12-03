@@ -45,9 +45,20 @@ struct Entry<'a> {
 
 impl<'a> Entry<'a> {
     fn passes(&self) -> bool {
-        let count = self.password.chars().filter(|c| *c == self.c).count();
-        self.range.includes(count as u32)
+        let cs: Vec<_> = self.password.chars().collect();
+        let first_char = cs[self.range.lower as usize - 1];
+        let second_char = cs[self.range.upper as usize - 1];
+
+        match (first_char == self.c, second_char == self.c) {
+            (true, true) | (false, false) => false,
+            _ => true,
+        }
     }
+
+    // fn passes(&self) -> bool {
+    //     let count = self.password.chars().filter(|c| *c == self.c).count();
+    //     self.range.includes(count as u32)
+    // }
 }
 
 fn parse_entry(s: &str) -> IResult<&str, Entry<'_>> {
@@ -57,6 +68,8 @@ fn parse_entry(s: &str) -> IResult<&str, Entry<'_>> {
     let (s, _) = tag(":")(s)?;
     let (s, _) = space0(s)?;
     let (s, password) = alpha1(s)?;
+
+    assert!(range.lower < range.upper);
 
     Ok((
         s,
