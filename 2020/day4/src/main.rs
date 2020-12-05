@@ -1,5 +1,18 @@
+use eyre::Result;
+use nom::{
+    branch::alt,
+    bytes::complete::{tag, take_while_m_n},
+    character::complete::digit1,
+    combinator::complete,
+    AsChar, IResult,
+};
 use std::collections::HashMap;
 use std::str::Lines;
+
+enum Height {
+    Centimeters(u64),
+    Inches(u64),
+}
 
 #[derive(Debug)]
 struct Passport<'a> {
@@ -15,7 +28,89 @@ impl<'a> Passport<'a> {
             }
         }
 
-        return true;
+        self.birth_year_valid()
+            && self.issue_year_valid()
+            && self.expiration_year_valid()
+            && self.height_valid()
+            && self.hair_color_valid()
+            && self.eye_color_valid()
+            && self.passport_id_valid()
+    }
+
+    fn birth_year_valid(&self) -> bool {
+        self.year_in_range("byr", 1920, 2002)
+    }
+
+    fn issue_year_valid(&self) -> bool {
+        self.year_in_range("iyr", 2010, 2020)
+    }
+
+    fn expiration_year_valid(&self) -> bool {
+        self.year_in_range("eyr", 2020, 2030)
+    }
+
+    fn height_valid(&self) -> bool {
+        self.parse_height(self.entries["hgt"])
+            .map(|(_, h)| match h {
+                Height::Centimeters(h) => h >= 150 && h <= 193,
+                Height::Inches(h) => h >= 59 && h <= 76,
+            })
+            .unwrap_or(false)
+    }
+
+    fn hair_color_valid(&self) -> bool {
+        self.parse_hair_color(self.entries["hcl"])
+            .map(|_| true)
+            .unwrap_or(false)
+    }
+
+    fn parse_hair_color<'b>(&self, s: &'b str) -> IResult<&'b str, ()> {
+        let (s, _) = tag("#")(s)?;
+        let (s, _) = take_while_m_n(6, 6, |c: char| c.is_hex_digit())(s)?;
+        Ok((s, ()))
+    }
+
+    fn eye_color_valid(&self) -> bool {
+        let c = self.entries["ecl"];
+        match c {
+            "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => true,
+            _ => false,
+        }
+    }
+
+    fn passport_id_valid(&self) -> bool {
+        let pid_str = self.entries["pid"];
+        if pid_str.len() != 9 {
+            return false;
+        }
+
+        pid_str.parse::<i64>().map(|_| true).unwrap_or(false)
+    }
+
+    fn parse_height<'b>(&self, s: &'b str) -> IResult<&'b str, Height> {
+        let (s, num) = digit1(s)?;
+        let (s, unit) = alt((tag("cm"), tag("in")))(s)?;
+
+        if unit == "cm" {
+            Ok((s, Height::Centimeters(num.parse().unwrap())))
+        } else if unit == "in" {
+            Ok((s, Height::Inches(num.parse().unwrap())))
+        } else {
+            Err(nom::Err::Failure(nom::error::make_error(
+                s,
+                nom::error::ErrorKind::Tag,
+            )))
+        }
+    }
+
+    fn year_in_range(&self, key: &str, lower: i32, upper: i32) -> bool {
+        match digit1::<_, ()>(self.entries[key]) {
+            Ok((_, yr)) => {
+                let yr = yr.parse::<i32>().unwrap();
+                yr >= lower && yr <= upper
+            }
+            _ => false,
+        }
     }
 }
 
