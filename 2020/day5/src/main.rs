@@ -1,14 +1,27 @@
+#[tracing::instrument]
 fn main() {
     tracing_subscriber::fmt::init();
     let input = include_str!("../input");
     let layout = Layout::default();
-    let answer = input
+    let seen_seats: Vec<u64> = input
         .lines()
         .map(|l| l.trim())
-        .map(|l| layout.seat_position(l).seat_id())
-        .max()
-        .unwrap_or(0);
-    println!("{}", answer);
+        .map(|l| {
+            let seat_id = layout.seat_position(l).seat_id();
+            tracing::debug!(?seat_id, "seen seat");
+            seat_id
+        })
+        .collect();
+
+    tracing::info!(num_seats = seen_seats.len(), "found seats");
+
+    for seat in layout.valid_seats() {
+        tracing::debug!(?seat, "checking seat");
+        if !seen_seats.contains(&seat) {
+            tracing::info!(?seat, "missing this seat");
+            // break;
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,24 +62,24 @@ impl Layout {
         let mut col_range = (0, self.n_columns - 1);
 
         for instruction in &instructions {
-            let span = tracing::debug_span!("instruction", ?instruction, ?col_range, ?row_range);
+            let span = tracing::trace_span!("instruction", ?instruction, ?col_range, ?row_range);
             let _enter = span.enter();
             match instruction {
                 Instruction::Front => {
                     row_range.1 = (row_range.0 + row_range.1) / 2;
-                    tracing::debug!(after = ?row_range, "updating row range");
+                    tracing::trace!(after = ?row_range, "updating row range");
                 }
                 Instruction::Back => {
                     row_range.0 = (row_range.0 + row_range.1) / 2 + 1;
-                    tracing::debug!(after = ?row_range, "updating row range");
+                    tracing::trace!(after = ?row_range, "updating row range");
                 }
                 Instruction::Left => {
                     col_range.1 = (col_range.0 + col_range.1) / 2;
-                    tracing::debug!(after = ?col_range, "updating col range");
+                    tracing::trace!(after = ?col_range, "updating col range");
                 }
                 Instruction::Right => {
                     col_range.0 = (col_range.0 + col_range.1) / 2 + 1;
-                    tracing::debug!(after = ?col_range, "updating col range");
+                    tracing::trace!(after = ?col_range, "updating col range");
                 }
             }
         }
@@ -79,6 +92,15 @@ impl Layout {
             row: row_range.0,
             column: col_range.0,
         }
+    }
+
+    fn valid_seats(&self) -> std::ops::Range<u64> {
+        self.n_columns..(self.num_seats() - self.n_columns)
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn num_seats(&self) -> u64 {
+        self.n_columns * self.n_rows
     }
 
     #[tracing::instrument(skip(self))]
