@@ -24,18 +24,57 @@ impl FromStr for PlayOption {
 }
 
 #[derive(Debug, Clone, Copy)]
+enum Outcome {
+    Loss,
+    Draw,
+    Win,
+}
+
+impl FromStr for Outcome {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "X" => Ok(Outcome::Loss),
+            "Y" => Ok(Outcome::Draw),
+            "Z" => Ok(Outcome::Win),
+            _ => Err(()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 struct Play {
-    you: PlayOption,
     opponent: PlayOption,
+    you: PlayOption,
+}
+
+fn predict_play(play: PlayOption, outcome: Outcome) -> PlayOption {
+    match (play, outcome) {
+        (PlayOption::Rock, Outcome::Draw) => PlayOption::Rock,
+        (PlayOption::Paper, Outcome::Draw) => PlayOption::Paper,
+        (PlayOption::Scissors, Outcome::Draw) => PlayOption::Scissors,
+
+        (PlayOption::Rock, Outcome::Loss) => PlayOption::Scissors,
+        (PlayOption::Scissors, Outcome::Loss) => PlayOption::Paper,
+        (PlayOption::Paper, Outcome::Loss) => PlayOption::Rock,
+
+        (PlayOption::Paper, Outcome::Win) => PlayOption::Scissors,
+        (PlayOption::Rock, Outcome::Win) => PlayOption::Paper,
+        (PlayOption::Scissors, Outcome::Win) => PlayOption::Rock,
+    }
 }
 
 impl Play {
     fn from_str(line: &str) -> Play {
         let mut words = line.trim().split_whitespace();
         let their_play = words.next().unwrap().parse().unwrap();
-        let your_play = words.next().unwrap().parse().unwrap();
+        let outcome = words.next().unwrap().parse().unwrap();
+
+        let you = predict_play(their_play, outcome);
+
         Play {
-            you: your_play,
+            you,
             opponent: their_play,
         }
     }
@@ -100,11 +139,21 @@ mod tests {
     use crate::run;
 
     #[test]
-    fn example() {
+    #[ignore]
+    fn example_1() {
         let input = "A Y
             B X
             C Z";
 
         assert_eq!(run(input), 15);
+    }
+
+    #[test]
+    fn example_2() {
+        let input = "A Y
+            B X
+            C Z";
+
+        assert_eq!(run(input), 12);
     }
 }
