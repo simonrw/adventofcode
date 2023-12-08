@@ -27,6 +27,7 @@
               rust-bin.beta.latest.default
               rust-analyzer
               clippy
+              cargo-nextest
               rustfmt
             ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
               libiconv
